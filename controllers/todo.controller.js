@@ -1,4 +1,5 @@
 import Todo from '../models/todo.model.js'
+import mongoose from 'mongoose'
 
 //Create TODO POST 
 
@@ -89,4 +90,89 @@ export const getallTodos = async (req, res) => {
     }
 }
 
+// GET TODO by ID
 
+export const getTodoById = async (req, res) => {
+    try {
+        const { id } = req.params
+
+        //validate id
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+            return res.status(400).json({
+                success: false,
+                message: 'Invalid TODO ID'
+            })
+        }
+        const todo = await Todo.findById(id)
+
+        if (!todo) {
+            return res.status(404).json({
+                success: false,
+                message: 'ToDo not found'
+            })
+        }
+        return res.status(200).json({
+            success: true,
+            message: 'ToDo retrieved successfully',
+            todo
+        })
+    }
+    catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: 'Internal Server Error',
+            error: error.message
+        })
+    }
+}
+
+// Update TODO by ID
+
+export const updateTodoById = async (req, res) => {
+    try {
+        const { id } = req.params
+        const { title, description } = req.body
+
+        //validate id 
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+            return res.status(400).json({
+                success: false,
+                message: 'Invalid TODO ID'
+            })
+        }
+        // validate input 
+        if (!title || title.trim() === '') {
+            return res.status(400).json({
+                success: false,
+                message: 'Title and description cannot be empty'
+            })
+        }
+        // update todo
+        const todo = await Todo.findByIdAndUpdate(id, {
+            title,
+            description,
+        }, { new: true })
+
+        if (!todo) {
+            return res.status(404).json({
+                success: false,
+                message: 'ToDo not found'
+            })
+        }
+        return res.status(200).json({
+            success: true,
+            message: 'ToDo updated successfully',
+            todo
+        })
+
+
+    }
+    catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: 'Internal Server Error',
+            error: error.message
+        })
+    }
+
+}
